@@ -1,0 +1,6 @@
+[submodule "lotto_contract/lib/forge-std"]
+	path = lotto_contract/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "lotto_contract/lib/vrf-contracts"]
+	path = lotto_contract/lib/vrf-contracts
+	url = https://github.com/gelatodigital/vrf-contracts
