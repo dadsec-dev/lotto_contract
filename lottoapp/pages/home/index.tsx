@@ -2,6 +2,8 @@ import React from 'react'
 import Info from '../components/Info';
 import Navbar from '../components/Navbar';
 import Content from '../components/Content';
+import Footer from '../components/Footer';
+import Copyright from '../components/Copyright';
 
 
 const Homepage = () => {
@@ -10,7 +12,8 @@ const Homepage = () => {
         <Info />
         <Navbar />
         <Content />
-
+        <Footer />
+        <Copyright />
     </div>
 
 

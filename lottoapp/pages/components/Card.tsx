@@ -4,8 +4,13 @@ import Image from 'next/image'
 import { FaCalendarDays } from "react-icons/fa6";
 import { BsTagsFill } from "react-icons/bs";
 import { BsFillPeopleFill } from "react-icons/bs";
+import { useDisclosure } from "@chakra-ui/react";
+import Modalpop from './Modal';
+
 
 const Card = (props : any) => {
+    const { isOpen, onOpen, onClose } = useDisclosure()
+
   return (
     <div>
         <div className="mt-12 text-[#FFFFFF] bg-[#000000] h-[55vh]">
@@ -20,7 +25,7 @@ const Card = (props : any) => {
             <BsTagsFill className="text-[#611616]" />
             <div className="flex space-x-28 items-center">
               <h1>{props.amount}ETH</h1>
-              <button className="text-[#FFFFFF] w-32 h-12 bg-[#D43791] rounded-lg">
+              <button className="text-[#FFFFFF] w-32 h-12 bg-[#D43791] rounded-lg" onClick={onOpen}>
                 Draw
               </button>
             </div>
@@ -31,6 +36,8 @@ const Card = (props : any) => {
           </div>
         </div>
       </div>
+      <Modalpop isOpen={isOpen} onClose={onClose} />
+
     </div>
   )
 }

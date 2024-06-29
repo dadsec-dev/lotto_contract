@@ -20,7 +20,7 @@ const Modalpop: React.FC<ModalpopProps> = ({ isOpen, onClose })  => {
         onClose={onClose}
       >
         <ModalOverlay />
-        <ModalContent pb={15} mt={300} bg="#110E0E" color="#FFFFFF" px={5}>
+        <ModalContent pb={15} mt={220} bg="#110E0E" color="#FFFFFF" px={5}>
           <ModalCloseButton mt={15} />
           <ModalBody pb={6} mt={20}>
             <FormControl>

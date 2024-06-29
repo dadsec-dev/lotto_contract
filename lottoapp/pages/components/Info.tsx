@@ -5,7 +5,7 @@ import Image from "next/image";
 
 const Info = () => {
   return (
-    <div className='flex justify-between px-20 h-[77px] bg-[#000000]'>
+    <div className='flex justify-between px-20 h-[77px] moving-div'>
     <div className='text-[20px] text-[#FFFFFF] mt-4'> 0x7423d...1c4n just won 0.05Eth</div>
     <div className='flex text-[20px] text-[#FFFFFF] mt-4 space-x-12'>
         <h1>SuperBowl Fund: 2.01 Eth</h1>

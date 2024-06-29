@@ -17,3 +17,18 @@ a {
 * {
   box-sizing: border-box;
 } */
+.moving-div {
+  width: 100%;
+  height: 50px;
+  position: relative;
+  animation: moveRightToLeft 12s linear infinite;
+}
+
+@keyframes moveRightToLeft {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
