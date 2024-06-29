@@ -13,6 +13,7 @@ import {
   sepolia,
 } from 'wagmi/chains';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { ChakraProvider } from '@chakra-ui/react'
 
 const config = getDefaultConfig({
   appName: 'lotto',
@@ -35,7 +36,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
         <RainbowKitProvider>
+        <ChakraProvider>
           <Component {...pageProps} />
+          </ChakraProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

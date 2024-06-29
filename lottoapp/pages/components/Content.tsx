@@ -5,8 +5,16 @@ import { FaCalendarDays } from "react-icons/fa6";
 import { BsTagsFill } from "react-icons/bs";
 import { BsFillPeopleFill } from "react-icons/bs";
 import Card from "./Card";
+import Modalpop from "./Modal";
+import { useDisclosure } from "@chakra-ui/react";
+
+
+
 
 const Content = () => {
+    const { isOpen, onOpen, onClose } = useDisclosure()
+
+
 const mockdata = [
     {
         daysleft : "0d : 04hr : 20m : 20sec",
@@ -46,7 +54,7 @@ const mockdata = [
             <BsTagsFill className="text-[#611616]" />
             <div className="flex space-x-64 items-center">
               <h1>0.01Eth</h1>
-              <button className="text-[#FFFFFF] w-32 h-12 bg-[#D43791] rounded-lg">
+              <button className="text-[#FFFFFF] w-32 h-12 bg-[#D43791] rounded-lg" onClick={onOpen}>
                 Draw
               </button>
             </div>
@@ -57,11 +65,12 @@ const mockdata = [
           </div>
         </div>
       </div>
-      <div  className="flex mx-28 space-x-6">
+      <div  className="flex mx-28 space-x-6 mt-8">
       {mockdata.map((item, num) => (
         <Card key={num} day={item.daysleft} amount={item.amount} participant={item.participants} />      
         ))}
     </div>
+    <Modalpop isOpen={isOpen} onClose={onClose} />
     </div>
   );
 };
