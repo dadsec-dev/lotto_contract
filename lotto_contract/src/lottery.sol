@@ -9,8 +9,6 @@ contract Lottery is GelatoVRFConsumerBase {
     uint256 public ticketPrice = 0.01 ether;
     uint256 public drawDuration = 30 minutes;
     uint256 public totalSuperBowlFund;
-    uint256 public totalDrawFunds;
-    uint256 public totalPlatformRevenue;
     uint256 public drawCount;
     uint256 public superBowlRandomness;
 
@@ -36,7 +34,10 @@ contract Lottery is GelatoVRFConsumerBase {
 
     mapping(uint256 => Draw) public draws;
     mapping(address => uint256) public userXP;
+<<<<<<< HEAD
     // uint256 public drawCount;
+=======
+>>>>>>> d4e069b3b0ff7344aa1cdacf575dc166ecb543ac
     address[] public superBowlParticipants;
 
     event TicketPurchased(address indexed participant, uint8 number, uint256 drawNumber);
