@@ -8,20 +8,33 @@ contract Lottery is GelatoVRFConsumerBase {
     address public teamWallet;
     uint256 public ticketPrice = 0.01 ether;
     uint256 public drawDuration = 30 minutes;
-    uint256 public drawPot = 0;
+    uint256 public totalSuperBowlFund;
+    uint256 public drawCount;
+    uint256 public superBowlRandomness;
 
     struct Draw {
         uint256 endTime;
-        mapping(uint256 => address) participants;
+        uint256 drawPot;
         uint8[] chosenNumbers;
         address[] winners;
+        bool isOpen;
+        address[] participantsArray;
+        mapping(uint256 => address) participants;
         uint256 randomness;
     }
 
+    struct DrawInfo {
+        uint256 endTime;
+        uint256 drawPot;
+        uint8[] chosenNumbers;
+        address[] winners;
+        bool isOpen;
+        address[] participantsArray;
+    }
+
     mapping(uint256 => Draw) public draws;
-    uint256 public drawCount;
+    mapping(address => uint256) public userXP;
     address[] public superBowlParticipants;
-    uint256 public superBowlRandomness;
 
     event TicketPurchased(address indexed participant, uint8 number, uint256 drawNumber);
     event DrawEnded(uint256 drawNumber, address[] winners, uint256 prize);
@@ -41,7 +54,7 @@ contract Lottery is GelatoVRFConsumerBase {
     }
 
     constructor(address _teamWallet) {
-        moderator = 0x9B69F998b2a2b20FF54a575Bd5fB90A5D71656C1;
+        moderator = msg.sender;
         teamWallet = _teamWallet;
         _startNewDraw();
     }
@@ -49,7 +62,7 @@ contract Lottery is GelatoVRFConsumerBase {
     function _startNewDraw() internal {
         drawCount++;
         draws[drawCount].endTime = block.timestamp + drawDuration;
-        draws[drawCount].chosenNumbers = new uint8[](0); 
+        draws[drawCount].isOpen = true;
     }
 
     function startNewDraw() public onlyModerator {
@@ -71,16 +84,16 @@ contract Lottery is GelatoVRFConsumerBase {
         }
     }
 
-    function changeMod(address _newmod) public onlyModerator() {
-        moderator = _newmod;
+    function changeMod(address _newMod) public onlyModerator {
+        moderator = _newMod;
     }
 
     function _selectDrawWinners(uint256 drawNumber) internal {
         Draw storage currentDraw = draws[drawNumber];
         if (currentDraw.chosenNumbers.length == 0) return;
 
-        uint256 numWinners = 3; // Fixed number of winners
-        uint256 totalPrize = (drawPot * 80) / 100;
+        uint256 numWinners = 3;
+        uint256 totalPrize = (currentDraw.drawPot * 80) / 100;
         uint256 prizePerWinner = totalPrize / numWinners;
 
         for (uint256 i = 0; i < numWinners; i++) {
@@ -90,24 +103,23 @@ contract Lottery is GelatoVRFConsumerBase {
             payable(winner).transfer(prizePerWinner);
         }
 
-        uint256 platformFee = (drawPot * 5) / 100;
+        uint256 platformFee = (currentDraw.drawPot * 5) / 100;
         payable(teamWallet).transfer(platformFee);
 
-        // Transfer remaining 5% to Super Bowl fund
-        uint256 superBowlFund = (drawPot * 5) / 100;
-        payable(teamWallet).transfer(superBowlFund);
+        uint256 superBowlFund = (currentDraw.drawPot * 15) / 100;
+        totalSuperBowlFund += superBowlFund;
 
         emit DrawEnded(drawNumber, currentDraw.winners, totalPrize);
 
-        drawPot = 0;
+        currentDraw.isOpen = false;
         _startNewDraw();
     }
 
     function _selectSuperBowlWinners() internal {
         if (superBowlParticipants.length == 0) return;
 
-        uint256 numWinners = 3; // Fixed number of winners for Super Bowl
-        uint256 totalPrize = address(this).balance; // Super Bowl fund
+        uint256 numWinners = 3;
+        uint256 totalPrize = address(this).balance;
         uint256 prizePerWinner = totalPrize / numWinners;
 
         address[] memory winners = new address[](numWinners);
@@ -122,10 +134,10 @@ contract Lottery is GelatoVRFConsumerBase {
         }
 
         emit SuperBowlDrawEnded(winners, totalPrize);
-        delete superBowlParticipants;  // Clear the array
+        delete superBowlParticipants;
     }
 
-    function _operator() view override internal returns (address) {
+    function _operator() internal view override returns (address) {
         return moderator;
     }
 
@@ -147,9 +159,12 @@ contract Lottery is GelatoVRFConsumerBase {
 
         currentDraw.participants[number] = msg.sender;
         currentDraw.chosenNumbers.push(number);
-        drawPot += msg.value;
+        currentDraw.drawPot += msg.value;
+        currentDraw.participantsArray.push(msg.sender);
 
         superBowlParticipants.push(msg.sender);
+
+        userXP[msg.sender] += 10;
 
         emit TicketPurchased(msg.sender, number, drawCount);
     }
@@ -166,5 +181,35 @@ contract Lottery is GelatoVRFConsumerBase {
 
         bytes memory extraData = abi.encode("SuperBowl");
         _requestRandomness(extraData);
+    }
+
+    function checkIfWinner(address _address) external view returns (bool) {
+        for (uint256 i = 1; i <= drawCount; i++) {
+            Draw storage draw = draws[i];
+            for (uint256 j = 0; j < draw.winners.length; j++) {
+                if (draw.winners[j] == _address) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function returnDraws() external view returns (DrawInfo[] memory) {
+        DrawInfo[] memory allDraws = new DrawInfo[](drawCount);
+
+        for (uint256 i = 1; i <= drawCount; i++) {
+            Draw storage draw = draws[i];
+            DrawInfo memory drawInfo;
+            drawInfo.endTime = draw.endTime;
+            drawInfo.drawPot = draw.drawPot;
+            drawInfo.chosenNumbers = draw.chosenNumbers;
+            drawInfo.winners = draw.winners;
+            drawInfo.isOpen = draw.isOpen;
+            drawInfo.participantsArray = draw.participantsArray;
+            allDraws[i - 1] = drawInfo;
+        }
+
+        return allDraws;
     }
 }
