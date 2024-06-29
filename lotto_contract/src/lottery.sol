@@ -11,8 +11,11 @@ contract Lottery is GelatoVRFConsumerBase {
     uint256 public totalSuperBowlFund;
     uint256 public drawCount;
     uint256 public superBowlRandomness;
+<<<<<<< HEAD
     uint256 public totalRevenueAccumulated;
     uint256 public totalDrawMoney;
+=======
+>>>>>>> b0d3c4854b0f22bd02f6554613d682f25dadb485
 
     struct Draw {
         uint256 endTime;
@@ -36,7 +39,14 @@ contract Lottery is GelatoVRFConsumerBase {
 
     mapping(uint256 => Draw) public draws;
     mapping(address => uint256) public userXP;
+<<<<<<< HEAD
     // uint256 public drawCount;
+=======
+<<<<<<< HEAD
+    // uint256 public drawCount;
+=======
+>>>>>>> d4e069b3b0ff7344aa1cdacf575dc166ecb543ac
+>>>>>>> b0d3c4854b0f22bd02f6554613d682f25dadb485
     address[] public superBowlParticipants;
 
     event TicketPurchased(address indexed participant, uint8 number, uint256 drawNumber);
@@ -91,6 +101,7 @@ contract Lottery is GelatoVRFConsumerBase {
         moderator = _newMod;
     }
 
+<<<<<<< HEAD
 function _selectDrawWinners(uint256 drawNumber) internal {
     Draw storage currentDraw = draws[drawNumber];
     if (currentDraw.chosenNumbers.length == 0) return;
@@ -128,6 +139,35 @@ function _selectDrawWinners(uint256 drawNumber) internal {
     _startNewDraw();
 }
 
+=======
+    function _selectDrawWinners(uint256 drawNumber) internal {
+        Draw storage currentDraw = draws[drawNumber];
+        if (currentDraw.chosenNumbers.length == 0) return;
+
+        uint256 numWinners = 3;
+        uint256 totalPrize = (currentDraw.drawPot * 80) / 100;
+        uint256 prizePerWinner = totalPrize / numWinners;
+
+        for (uint256 i = 0; i < numWinners; i++) {
+            uint256 winnerIndex = uint256(keccak256(abi.encode(currentDraw.randomness, i))) % currentDraw.chosenNumbers.length;
+            address winner = currentDraw.participants[currentDraw.chosenNumbers[winnerIndex]];
+            currentDraw.winners.push(winner);
+            payable(winner).transfer(prizePerWinner);
+        }
+
+        uint256 platformFee = (currentDraw.drawPot * 5) / 100;
+        payable(teamWallet).transfer(platformFee);
+
+        uint256 superBowlFund = (currentDraw.drawPot * 15) / 100;
+        totalSuperBowlFund += superBowlFund;
+
+        emit DrawEnded(drawNumber, currentDraw.winners, totalPrize);
+
+        currentDraw.isOpen = false;
+        _startNewDraw();
+    }
+
+>>>>>>> b0d3c4854b0f22bd02f6554613d682f25dadb485
     function _selectSuperBowlWinners() internal {
         if (superBowlParticipants.length == 0) return;
 
@@ -176,7 +216,10 @@ function _selectDrawWinners(uint256 drawNumber) internal {
         currentDraw.participantsArray.push(msg.sender);
 
         superBowlParticipants.push(msg.sender);
+<<<<<<< HEAD
         totalDrawMoney += msg.value;
+=======
+>>>>>>> b0d3c4854b0f22bd02f6554613d682f25dadb485
 
         userXP[msg.sender] += 10;
 
