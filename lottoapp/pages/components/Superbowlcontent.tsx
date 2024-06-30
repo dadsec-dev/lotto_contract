@@ -45,7 +45,7 @@ const mockdata = [
       </div>
       <div className="mx-28 bg-[#000000] h-[50vh] mt-10">
             <div className="h-[60%]">
-                <Image src={lotterystr} alt="lot" className="fit"/>
+                <Image src={lotterystr} alt="lot" className="stretch w-[100%]"/>
             </div>
             <div className="text-[#ffffff] my-12 mx-12">
                 <h1>Lorem ipsum iyhmso soihmmsj ksifpls</h1>
