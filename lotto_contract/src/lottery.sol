@@ -14,6 +14,7 @@ contract Lottery is GelatoVRFConsumerBase {
     uint256 public totalRevenueAccumulated;
     uint256 public totalDrawMoney;
 
+
     struct Draw {
         uint256 endTime;
         uint256 drawPot;
@@ -91,6 +92,7 @@ contract Lottery is GelatoVRFConsumerBase {
         moderator = _newMod;
     }
 
+
 function _selectDrawWinners(uint256 drawNumber) internal {
     Draw storage currentDraw = draws[drawNumber];
     if (currentDraw.chosenNumbers.length == 0) return;
@@ -127,6 +129,7 @@ function _selectDrawWinners(uint256 drawNumber) internal {
     currentDraw.isOpen = false;
     _startNewDraw();
 }
+
 
     function _selectSuperBowlWinners() internal {
         if (superBowlParticipants.length == 0) return;
@@ -176,7 +179,11 @@ function _selectDrawWinners(uint256 drawNumber) internal {
         currentDraw.participantsArray.push(msg.sender);
 
         superBowlParticipants.push(msg.sender);
+
         totalDrawMoney += msg.value;
+
+        totalDrawMoney += msg.value;
+
 
         userXP[msg.sender] += 10;
 
