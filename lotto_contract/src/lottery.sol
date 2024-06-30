@@ -116,12 +116,6 @@ contract Lottery is GelatoVRFConsumerBase {
         _startNewDraw();
     }
 
-    function _selectSuperBowlWinners() internal {
-        if (superBowlParticipants.length == 0) return;
-
-        uint256 numWinners = 3;
-        uint256 totalPrize = address(this).balance;
-        uint256 prizePerWinner = totalPrize / numWinners;
 function _selectSuperBowlWinners() internal {
     uint256 numWinners = 3;
     uint256 totalPrize = totalSuperBowlFund;
@@ -146,13 +140,11 @@ function _selectSuperBowlWinners() internal {
         payable(winner).transfer(prizePerWinner);
     }
 
-        emit SuperBowlDrawEnded(winners, totalPrize);
-        delete superBowlParticipants;
-    }
     emit SuperBowlDrawEnded(winners, totalPrize);
     delete superBowlParticipants;
     totalSuperBowlFund = 0;
 }
+
 
     function _operator() internal view override returns (address) {
         return moderator;
