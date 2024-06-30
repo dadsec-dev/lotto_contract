@@ -6,11 +6,13 @@ import {GelatoVRFConsumerBase} from "../lib/vrf-contracts/contracts/GelatoVRFCon
 contract Lottery is GelatoVRFConsumerBase {
     address public moderator;
     address public teamWallet;
-    uint256 public ticketPrice = 0.01 ether;
-    uint256 public drawDuration = 30 minutes;
+    uint256 public ticketPrice = 0.001 ether;
+    uint256 public drawDuration = 1 minutes;
+    uint256 public superBowlInterval = 2; // Number of regular draws before a Super Bowl draw
     uint256 public totalSuperBowlFund;
     uint256 public drawCount;
     uint256 public superBowlRandomness;
+    uint256 public nextSuperBowlDrawCount;
 
     struct Draw {
         uint256 endTime;
@@ -56,6 +58,7 @@ contract Lottery is GelatoVRFConsumerBase {
     constructor(address _teamWallet) {
         moderator = msg.sender;
         teamWallet = _teamWallet;
+        nextSuperBowlDrawCount = superBowlInterval;
         _startNewDraw();
     }
 
@@ -76,15 +79,13 @@ contract Lottery is GelatoVRFConsumerBase {
     ) internal override {
         if (keccak256(extraData) == keccak256(abi.encode("SuperBowl"))) {
             superBowlRandomness = randomness;
-            _selectSuperBowlWinners();
         } else {
             uint256 drawNumber = abi.decode(extraData, (uint256));
             draws[drawNumber].randomness = randomness;
-            _selectDrawWinners(drawNumber);
         }
     }
 
-    function changeMod(address _newMod) public onlyModerator {
+    function changeModerator(address _newMod) public onlyModerator {
         moderator = _newMod;
     }
 
@@ -142,7 +143,8 @@ contract Lottery is GelatoVRFConsumerBase {
     }
 
     function buyTicket(uint8 number) external payable {
-        if (block.timestamp >= draws[drawCount].endTime) {
+        Draw storage currentDraw = draws[drawCount];
+        if (block.timestamp >= currentDraw.endTime || !currentDraw.isOpen) {
             revert DrawEndedError();
         }
         if (msg.value != ticketPrice) {
@@ -152,7 +154,6 @@ contract Lottery is GelatoVRFConsumerBase {
             revert InvalidNumber();
         }
 
-        Draw storage currentDraw = draws[drawCount];
         if (currentDraw.participants[number] != address(0)) {
             revert NumberAlreadyChosen();
         }
@@ -174,13 +175,20 @@ contract Lottery is GelatoVRFConsumerBase {
 
         bytes memory extraData = abi.encode(drawCount);
         _requestRandomness(extraData);
+        _selectDrawWinners(drawCount);
+
+        if (drawCount >= nextSuperBowlDrawCount) {
+            nextSuperBowlDrawCount += superBowlInterval;
+            startSuperBowlDraw();
+        }
     }
 
-    function endSuperBowlDraw() external onlyModerator {
+    function startSuperBowlDraw() public onlyModerator {
         require(superBowlParticipants.length > 0, "No participants for SuperBowl draw");
 
         bytes memory extraData = abi.encode("SuperBowl");
         _requestRandomness(extraData);
+        _selectSuperBowlWinners();
     }
 
     function checkIfWinner(address _address) external view returns (bool) {
