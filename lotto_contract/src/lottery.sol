@@ -136,28 +136,34 @@ contract Lottery is GelatoVRFConsumerBase {
         _startNewDraw();
     }
 
-    function _selectSuperBowlWinners() internal {
-        if (superBowlParticipants.length == 0) return;
+function _selectSuperBowlWinners() internal {
+    uint256 numWinners = 3;
+    uint256 totalPrize = totalSuperBowlFund;
 
-        uint256 numWinners = 3;
-        uint256 totalPrize = totalSuperBowlFund;
-        uint256 prizePerWinner = totalPrize / numWinners;
-
-        address[] memory winners = new address[](numWinners);
-
-        for (uint256 i = 0; i < numWinners; i++) {
-            uint256 winnerIndex = uint256(keccak256(abi.encode(superBowlRandomness, i))) % superBowlParticipants.length;
-            address winner = superBowlParticipants[winnerIndex];
-            winners[i] = winner;
-            superBowlParticipants[winnerIndex] = superBowlParticipants[superBowlParticipants.length - 1];
-            superBowlParticipants.pop();
-            payable(winner).transfer(prizePerWinner);
-        }
-
-        emit SuperBowlDrawEnded(winners, totalPrize);
-        delete superBowlParticipants;
-        totalSuperBowlFund = 0;
+    if (superBowlParticipants.length < numWinners) {
+        numWinners = superBowlParticipants.length;
     }
+
+    uint256 prizePerWinner = numWinners > 0 ? totalPrize / numWinners : 0;
+
+    address[] memory winners = new address[](numWinners);
+
+    for (uint256 i = 0; i < numWinners; i++) {
+        if (superBowlParticipants.length == 0) {
+            break;
+        }
+        uint256 winnerIndex = uint256(keccak256(abi.encode(superBowlRandomness, i))) % superBowlParticipants.length;
+        address winner = superBowlParticipants[winnerIndex];
+        winners[i] = winner;
+        superBowlParticipants[winnerIndex] = superBowlParticipants[superBowlParticipants.length - 1];
+        superBowlParticipants.pop();
+        payable(winner).transfer(prizePerWinner);
+    }
+
+    emit SuperBowlDrawEnded(winners, totalPrize);
+    delete superBowlParticipants;
+    totalSuperBowlFund = 0;
+}
 
     function _operator() internal view override returns (address) {
         return moderator;
