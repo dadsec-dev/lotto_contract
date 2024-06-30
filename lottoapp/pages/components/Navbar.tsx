@@ -6,6 +6,7 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { useAccount } from 'wagmi'
 import avatar from '../../assets/avatar.png'
+import Link from 'next/link';
 
 
 
@@ -27,10 +28,13 @@ const Navbar = () => {
     <div className='text-[#FFFFFF] flex justify-between mx-28 mt-4'>
         <div className='flex space-x-6 items-center'>
             <Image src={logo} alt='logo' className='mr-10' />
-            <h1 className='font-bold text-[25px]'>Lottery</h1>
-            <h1 className='text-[18px]'>Superbowl</h1>
-            <h1 className='text-[18px]'>Schedule</h1>
-            <h1 className='text-[18px]'>Results</h1>
+            <Link href='/'>
+                <h1 className='font-bold text-[25px] cursor-pointer'>Lottery</h1>
+            </Link>
+            <Link href='/superbowl'>
+            <h1 className='text-[18px] cursor-pointer'>Superbowl</h1>
+            </Link>
+            <h1 className='text-[18px] cursor-pointer'>Schedule</h1>
         </div>
         <div className='flex space-x-4 items-center'>
             {connectionstat && <IoMdNotificationsOutline className='text-2xl' />}

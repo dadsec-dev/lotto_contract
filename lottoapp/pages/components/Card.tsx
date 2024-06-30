@@ -14,7 +14,7 @@ const Card = (props : any) => {
   return (
     <div>
         <div className="mt-12 text-[#FFFFFF] bg-[#000000] h-[55vh]">
-        <Image src={lotteryimage} alt="lotteryimage" className="mx-auto" />
+        <Image src={lotteryimage} alt="lotteryimage" className="mx-auto fit"  />
         <div className="mx-6 mt-3 space-y-2">
           <h1 className="font-bold">Lorem ipsum iyhmso soihmmsj ksifpls</h1>
           <div className="flex space-x-4 items-center">

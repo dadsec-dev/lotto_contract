@@ -1,24 +1,20 @@
 import React from 'react'
 import Info from '../components/Info';
 import Navbar from '../components/Navbar';
-import Content from '../components/Content';
+import Superbowlcontent from '../components/Superbowlcontent'
 import Footer from '../components/Footer';
 import Copyright from '../components/Copyright';
 
-
-const Homepage = () => {
+const Superbowl = () => {
   return (
-    <div>
-        <Info />
+    <div className=' bg-[#110E0E] min-h-[100vh] pb-4'>
+         <Info />
         <Navbar />
-        <Content />
+        <Superbowlcontent />
         <Footer />
         <Copyright />
     </div>
-
-
   )
 }
 
-export default Homepage
-
+export default Superbowl
