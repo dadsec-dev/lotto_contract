@@ -21,7 +21,7 @@ contract Lottery is GelatoVRFConsumerBase {
         address[] winners;
         bool isOpen;
         address[] participantsArray;
-        mapping(uint256 => address) participants;
+        mapping(uint8 => address) participants;
         uint256 randomness;
     }
 
@@ -36,6 +36,7 @@ contract Lottery is GelatoVRFConsumerBase {
 
     mapping(uint256 => Draw) public draws;
     mapping(address => uint256) public userXP;
+    mapping(address => bool) public isSuperBowlParticipant;
     address[] public superBowlParticipants;
 
     event TicketPurchased(address indexed participant, uint8 number, uint256 drawNumber);
@@ -79,9 +80,11 @@ contract Lottery is GelatoVRFConsumerBase {
     ) internal override {
         if (keccak256(extraData) == keccak256(abi.encode("SuperBowl"))) {
             superBowlRandomness = randomness;
+            _selectSuperBowlWinners();
         } else {
             uint256 drawNumber = abi.decode(extraData, (uint256));
             draws[drawNumber].randomness = randomness;
+            _selectDrawWinners(drawNumber);
         }
     }
 
@@ -116,35 +119,34 @@ contract Lottery is GelatoVRFConsumerBase {
         _startNewDraw();
     }
 
-function _selectSuperBowlWinners() internal {
-    uint256 numWinners = 3;
-    uint256 totalPrize = totalSuperBowlFund;
+    function _selectSuperBowlWinners() internal {
+        uint256 numWinners = 3;
+        uint256 totalPrize = totalSuperBowlFund;
 
-    if (superBowlParticipants.length < numWinners) {
-        numWinners = superBowlParticipants.length;
-    }
-
-    uint256 prizePerWinner = numWinners > 0 ? totalPrize / numWinners : 0;
-
-    address[] memory winners = new address[](numWinners);
-
-    for (uint256 i = 0; i < numWinners; i++) {
-        if (superBowlParticipants.length == 0) {
-            break;
+        if (superBowlParticipants.length < numWinners) {
+            numWinners = superBowlParticipants.length;
         }
-        uint256 winnerIndex = uint256(keccak256(abi.encode(superBowlRandomness, i))) % superBowlParticipants.length;
-        address winner = superBowlParticipants[winnerIndex];
-        winners[i] = winner;
-        superBowlParticipants[winnerIndex] = superBowlParticipants[superBowlParticipants.length - 1];
-        superBowlParticipants.pop();
-        payable(winner).transfer(prizePerWinner);
+
+        uint256 prizePerWinner = numWinners > 0 ? totalPrize / numWinners : 0;
+
+        address[] memory winners = new address[](numWinners);
+
+        for (uint256 i = 0; i < numWinners; i++) {
+            if (superBowlParticipants.length == 0) {
+                break;
+            }
+            uint256 winnerIndex = uint256(keccak256(abi.encode(superBowlRandomness, i))) % superBowlParticipants.length;
+            address winner = superBowlParticipants[winnerIndex];
+            winners[i] = winner;
+            superBowlParticipants[winnerIndex] = superBowlParticipants[superBowlParticipants.length - 1];
+            superBowlParticipants.pop();
+            payable(winner).transfer(prizePerWinner);
+        }
+
+        emit SuperBowlDrawEnded(winners, totalPrize);
+        delete superBowlParticipants;
+        totalSuperBowlFund = 0;
     }
-
-    emit SuperBowlDrawEnded(winners, totalPrize);
-    delete superBowlParticipants;
-    totalSuperBowlFund = 0;
-}
-
 
     function _operator() internal view override returns (address) {
         return moderator;
@@ -171,7 +173,10 @@ function _selectSuperBowlWinners() internal {
         currentDraw.drawPot += msg.value;
         currentDraw.participantsArray.push(msg.sender);
 
-        superBowlParticipants.push(msg.sender);
+        if (!isSuperBowlParticipant[msg.sender]) {
+            superBowlParticipants.push(msg.sender);
+            isSuperBowlParticipant[msg.sender] = true;
+        }
 
         userXP[msg.sender] += 10;
 
@@ -183,7 +188,6 @@ function _selectSuperBowlWinners() internal {
 
         bytes memory extraData = abi.encode(drawCount);
         _requestRandomness(extraData);
-        _selectDrawWinners(drawCount);
 
         if (drawCount >= nextSuperBowlDrawCount) {
             nextSuperBowlDrawCount += superBowlInterval;
@@ -196,7 +200,6 @@ function _selectSuperBowlWinners() internal {
 
         bytes memory extraData = abi.encode("SuperBowl");
         _requestRandomness(extraData);
-        _selectSuperBowlWinners();
     }
 
     function checkIfWinner(address _address) external view returns (bool) {
