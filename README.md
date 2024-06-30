@@ -10,7 +10,7 @@ Welcome to our Lotto Platform, built on the robust and scalable Base Network. Th
 - [Looking Ahead](#looking-ahead)
 - [Getting Started](#getting-started)
 - [Contributing](#contributing)
-- [License](#license)
+
 
 ## Introduction
 
@@ -61,8 +61,6 @@ To get started with our Lotto Platform:
 ## Contributing
 
 We welcome contributions from the community. If you'd like to contribute, please fork the repository, make your changes, and submit a pull request. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
 
 
 ---
