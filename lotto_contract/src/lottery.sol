@@ -14,7 +14,6 @@ contract Lottery is GelatoVRFConsumerBase {
     uint256 public totalRevenueAccumulated;
     uint256 public totalDrawMoney;
 
-
     struct Draw {
         uint256 endTime;
         uint256 drawPot;
@@ -22,7 +21,7 @@ contract Lottery is GelatoVRFConsumerBase {
         address[] winners;
         bool isOpen;
         address[] participantsArray;
-        mapping(uint256 => address) participants;
+        mapping(uint8 => address) participants;
         uint256 randomness;
     }
 
@@ -37,6 +36,7 @@ contract Lottery is GelatoVRFConsumerBase {
 
     mapping(uint256 => Draw) public draws;
     mapping(address => uint256) public userXP;
+    mapping(address => bool) public isSuperBowlParticipant;
 
     address[] public superBowlParticipants;
 
@@ -64,9 +64,18 @@ contract Lottery is GelatoVRFConsumerBase {
     }
 
     function _startNewDraw() internal {
+        if (drawCount > 0 && draws[drawCount].isOpen) {
+            revert DrawEndedError();
+        }
+
         drawCount++;
         draws[drawCount].endTime = block.timestamp + drawDuration;
         draws[drawCount].isOpen = true;
+
+        // Trigger SuperBowl draw every 2 draws
+        if (drawCount % 2 == 0) {
+            endSuperBowlDraw();
+        }
     }
 
     function startNewDraw() public onlyModerator {
@@ -92,50 +101,46 @@ contract Lottery is GelatoVRFConsumerBase {
         moderator = _newMod;
     }
 
+    function _selectDrawWinners(uint256 drawNumber) internal {
+        Draw storage currentDraw = draws[drawNumber];
+        if (currentDraw.chosenNumbers.length == 0) return;
 
-function _selectDrawWinners(uint256 drawNumber) internal {
-    Draw storage currentDraw = draws[drawNumber];
-    if (currentDraw.chosenNumbers.length == 0) return;
+        uint256 numWinners = 3;
+        uint256 totalPrize = (currentDraw.drawPot * 80) / 100;
+        uint256 prizePerWinner = totalPrize / numWinners;
 
-    uint256 numWinners = 3;
-    uint256 totalPrize = (currentDraw.drawPot * 80) / 100;
-    uint256 prizePerWinner = totalPrize / numWinners;
+        // Use a set to keep track of selected winner indices
+        bool[] memory chosenIndices = new bool[](101); // 101 to include 100
+        uint256 selectedWinners = 0;
 
-    // Use a set to keep track of selected winner indices
-    bool[] memory chosenIndices = new bool[](currentDraw.chosenNumbers.length);
-    uint256 selectedWinners = 0;
-
-    while (selectedWinners < numWinners) {
-        uint256 winnerIndex = uint256(keccak256(abi.encode(currentDraw.randomness, selectedWinners))) % currentDraw.chosenNumbers.length;
-        
-        // Ensure unique winner and within the range of 1-100
-        if (!chosenIndices[winnerIndex] && currentDraw.chosenNumbers[winnerIndex] >= 1 && currentDraw.chosenNumbers[winnerIndex] <= 100) {
-            chosenIndices[winnerIndex] = true;
-            address winner = currentDraw.participants[currentDraw.chosenNumbers[winnerIndex]];
-            currentDraw.winners.push(winner);
-            payable(winner).transfer(prizePerWinner);
-            selectedWinners++;
+        for (uint8 i = 1; i <= 100 && selectedWinners < numWinners; i++) {
+            if (chosenIndices[i]) continue;
+            address winner = currentDraw.participants[i];
+            if (winner != address(0)) {
+                chosenIndices[i] = true;
+                currentDraw.winners.push(winner);
+                payable(winner).transfer(prizePerWinner);
+                selectedWinners++;
+            }
         }
+
+        uint256 platformFee = (currentDraw.drawPot * 5) / 100;
+        payable(teamWallet).transfer(platformFee);
+
+        uint256 superBowlFund = (currentDraw.drawPot * 15) / 100;
+        totalSuperBowlFund += superBowlFund;
+
+        emit DrawEnded(drawNumber, currentDraw.winners, totalPrize);
+
+        currentDraw.isOpen = false;
+        _startNewDraw();
     }
-
-    uint256 platformFee = (currentDraw.drawPot * 5) / 100;
-    payable(teamWallet).transfer(platformFee);
-
-    uint256 superBowlFund = (currentDraw.drawPot * 15) / 100;
-    totalSuperBowlFund += superBowlFund;
-
-    emit DrawEnded(drawNumber, currentDraw.winners, totalPrize);
-
-    currentDraw.isOpen = false;
-    _startNewDraw();
-}
-
 
     function _selectSuperBowlWinners() internal {
         if (superBowlParticipants.length == 0) return;
 
         uint256 numWinners = 3;
-        uint256 totalPrize = address(this).balance;
+        uint256 totalPrize = totalSuperBowlFund;
         uint256 prizePerWinner = totalPrize / numWinners;
 
         address[] memory winners = new address[](numWinners);
@@ -151,6 +156,7 @@ function _selectDrawWinners(uint256 drawNumber) internal {
 
         emit SuperBowlDrawEnded(winners, totalPrize);
         delete superBowlParticipants;
+        totalSuperBowlFund = 0;
     }
 
     function _operator() internal view override returns (address) {
@@ -178,12 +184,12 @@ function _selectDrawWinners(uint256 drawNumber) internal {
         currentDraw.drawPot += msg.value;
         currentDraw.participantsArray.push(msg.sender);
 
-        superBowlParticipants.push(msg.sender);
+        if (!isSuperBowlParticipant[msg.sender]) {
+            superBowlParticipants.push(msg.sender);
+            isSuperBowlParticipant[msg.sender] = true;
+        }
 
         totalDrawMoney += msg.value;
-
-        totalDrawMoney += msg.value;
-
 
         userXP[msg.sender] += 10;
 
@@ -197,7 +203,7 @@ function _selectDrawWinners(uint256 drawNumber) internal {
         _requestRandomness(extraData);
     }
 
-    function endSuperBowlDraw() external onlyModerator {
+    function endSuperBowlDraw() public onlyModerator {
         require(superBowlParticipants.length > 0, "No participants for SuperBowl draw");
 
         bytes memory extraData = abi.encode("SuperBowl");
