@@ -14,7 +14,7 @@ Welcome to our Lotto Platform, built on the robust and scalable Base Network. Th
 
 ## Introduction
 
-Our Lotto Platform utilizes Base Network, an Ethereum Layer 2 (L2) solution, to provide a secure, scalable, and cost-effective environment for decentralized lottery games. By integrating cutting-edge blockchain features and ensuring fairness through innovative mechanisms, we aim to revolutionize the lottery industry.
+Our Lotto Platform utilizes Base Network, an Ethereum Layer 2 (L2) solution, to provide a secure, scalable, and cost-effective environment for decentralized lottery games. By integrating cutting-edge blockchain features and ensuring fairness through innovative mechanisms, we aim to revolutionize the lottery industry. Winners share 80% and 5% goes to the team ,  15% goes to the super bowl pot
 
 ## Key Features
 
