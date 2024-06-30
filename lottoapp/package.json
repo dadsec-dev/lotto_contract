@@ -13,15 +13,17 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@rainbow-me/rainbowkit": "^2.1.2",
-    "@tanstack/react-query": "^5.28.4",
+    "@tanstack/react-query": "^5.49.2",
+    "@web3modal/wagmi": "^5.0.3",
+    "ethers": "^6.13.1",
     "framer-motion": "^11.2.12",
     "lodash.merge": "^4.6.2",
     "next": "^14.2.3",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-icons": "^5.2.1",
-    "viem": "2.9.31",
-    "wagmi": "^2.9.2"
+    "viem": "^2.9.31",
+    "wagmi": "^2.10.8"
   },
   "devDependencies": {
     "@types/lodash.merge": "^4.6.9",
